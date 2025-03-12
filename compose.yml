@@ -1,0 +1,38 @@
+services:
+  app:
+    image: web-service-gin:latest
+    build:
+      args:
+        - target=dev
+    volumes:
+      - .:/myapp
+    ports:
+      - "8080:8080"
+    tty: true
+    stdin_open: true
+    environment:
+      PORT: 8080
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: todo
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: todo
+      MYSQL_USER: root
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+volumes:
+  db-data:
